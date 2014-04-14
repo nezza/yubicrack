@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
 	coreconfignum = ykp_config_num(cfg);
 	bruteforce(access_code, 5);
 
-	if(st) free(st);
+	if(st) ykds_free(st);
 	if(!yk_close_key(yk)) {
 		fputs("Can't close Yubikey! What the hell are you doing over there?", stderr);
 		return EXIT_FAILURE;
