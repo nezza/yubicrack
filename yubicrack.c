@@ -44,14 +44,17 @@ void print_access_code(char* text, unsigned char* access_code) {
 int bruteforce(unsigned char* t, int deep) {
 	int id = 5 - deep;
 	for(t[id]=0; t[id]<255; t[id]++) {
-		if(deep > 0) if(bruteforce(t, deep - 1) == 0) return 0;
-		if(!yk_write_config(yk,
-				coreconfig, coreconfignum,
-				t)) {
-			print_access_code("Fail", t);
+		if(deep > 0) {
+			if(bruteforce(t, deep - 1) == 0) return 0;
 		} else {
-			print_access_code("\aWin", t);
-			return 0;
+			if(!yk_write_config(yk, coreconfig, coreconfignum, t)) {
+				if (!(t[5] % 0x10)) {
+					print_access_code("Fail", t);
+				}
+			} else {
+				print_access_code("\aWin", t);
+				return 0;
+			}
 		}
 	}
 	return -1;
