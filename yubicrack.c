@@ -41,7 +41,7 @@ void print_access_code(char* text, unsigned char* access_code) {
 
 /* Iterate through all possible access codes.
  * This could take a loooooooooong time. */
-inline int bruteforce(unsigned char* t, int deep) {
+int bruteforce(unsigned char* t, int deep) {
 	int id = 5 - deep;
 	for(t[id]=0; t[id]<255; t[id]++) {
 		if(deep > 0) if(bruteforce(t, deep - 1) == 0) return 0;
