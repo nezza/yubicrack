@@ -41,26 +41,42 @@ void print_access_code(char* text, unsigned char* access_code) {
 
 /* Iterate through all possible access codes.
  * This could take a loooooooooong time. */
-inline int bruteforce(unsigned char* t, int deep) {
+int bruteforce(unsigned char* t, int deep) {
 	int id = 5 - deep;
-	for(t[id]=0; t[id]<255; t[id]++) {
-		if(deep > 0) if(bruteforce(t, deep - 1) == 0) return 0;
-		if(!yk_write_config(yk,
-				coreconfig, coreconfignum,
-				t)) {
-			print_access_code("Fail", t);
+	for(; t[id]<255; t[id]++) {
+		if(deep > 0) {
+			if(bruteforce(t, deep - 1) == 0) return 0;
 		} else {
-			print_access_code("\aWin", t);
-			return 0;
+			if(!yk_write_config(yk, coreconfig, coreconfignum, t)) {
+				if (yk_errno != 3) {
+					printf("Error accessing the key: %d\n",
+							yk_errno);
+					exit(1);
+				} else if (!(t[id] % 0x10)) {
+					print_access_code("Fail", t);
+				}
+			} else {
+				print_access_code("\aWin", t);
+				return 0;
+			}
 		}
 	}
+	t[id]=0;
 	return -1;
 }
 
 int main(int argc, char** argv) {
-
+	int i;
 	char showmessage = 1;
-	if((argc == 2) && (strcmp(argv[1], "-y") == 0)) showmessage = 0;
+	char *resume = NULL;
+
+	for (i=1; i<argc; i++) {
+		if(strcmp(argv[i], "-y") == 0) {
+			showmessage = 0;
+		} else {
+			resume = argv[i];
+		}
+	}
 	if(showmessage == 1) {
 		puts("--------------------------------------------");
 		puts("Hi! You're going to crack the access code of");
@@ -80,7 +96,7 @@ int main(int argc, char** argv) {
 			puts("Quitting.");
 			return EXIT_SUCCESS;
 		}
-	} 
+	}
 
 	yk = 0;
 	unsigned char access_code[6];
@@ -118,6 +134,16 @@ int main(int argc, char** argv) {
 
 	coreconfig = ykp_core_config(cfg);
 	coreconfignum = ykp_config_num(cfg);
+	if (resume) {
+		sscanf(resume, "%2hhx%2hhx%2hhx%2hhx%2hhx%2hhx",
+				&access_code[0],
+				&access_code[1],
+				&access_code[2],
+				&access_code[3],
+				&access_code[4],
+				&access_code[5]);
+		print_access_code("Resuming from", access_code);
+	}
 	bruteforce(access_code, 5);
 
 	if(st) free(st);
