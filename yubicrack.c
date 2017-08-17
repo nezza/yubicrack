@@ -48,7 +48,11 @@ int bruteforce(unsigned char* t, int deep) {
 			if(bruteforce(t, deep - 1) == 0) return 0;
 		} else {
 			if(!yk_write_config(yk, coreconfig, coreconfignum, t)) {
-				if (!(t[5] % 0x10)) {
+				if (yk_errno != 3) {
+					printf("Error accessing the key: %d\n",
+							yk_errno);
+					exit(1);
+				} else if (!(t[id] % 0x10)) {
 					print_access_code("Fail", t);
 				}
 			} else {
