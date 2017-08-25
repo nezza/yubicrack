@@ -25,6 +25,8 @@
 YK_KEY *yk;
 YK_CONFIG *coreconfig;
 int coreconfignum;
+char *serialno = NULL;
+char serialno_storage[7];
 
 /* This prints the actual accesscode with an
  * individual message in front of it. */
@@ -112,6 +114,15 @@ int main(int argc, char** argv) {
 		fputs("No Yubikey found.\n", stderr);
 		return EXIT_FAILURE;
 	}
+
+	unsigned int serial;
+	if(yk_get_serial(yk,0,0,&serial)) {
+		snprintf(serialno_storage, sizeof(serialno_storage), "%x", serial);
+		serialno = serialno_storage;
+	} else {
+		fputs("Failed to get serial of the Yubikey; is it pre-2.0?\n", stderr);
+	}
+
 	if(!yk_get_status(yk,st)) {
 		fputs("Failed to get status of the Yubikey.\n", stderr);
 		return EXIT_FAILURE;
@@ -122,6 +133,9 @@ int main(int argc, char** argv) {
 		ykds_version_minor(st),
 		ykds_version_build(st),
 		ykds_touch_level(st));
+	if(serialno) {
+		printf("Serial no: %s\n", serialno);
+	}
 
 	if(!ykp_configure_for(cfg, 1, st)) {
 		printf("Can't set configuration to 1.\n");
