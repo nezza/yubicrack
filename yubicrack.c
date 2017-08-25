@@ -27,6 +27,7 @@ YK_CONFIG *coreconfig;
 int coreconfignum;
 char *serialno = NULL;
 char serialno_storage[7];
+#define FILENAME_LEN 23 /* yubycrack-XXXXXX.state\0 */
 
 /* This prints the actual accesscode with an
  * individual message in front of it. */
@@ -41,6 +42,23 @@ void print_access_code(char* text, unsigned char* access_code) {
 		access_code[5]);
 }
 
+void write_state(char *serialno, unsigned char* access_code) {
+	char filename[FILENAME_LEN];
+	if (serialno) {
+		snprintf(filename, FILENAME_LEN, "yubicrack-%s.state", serialno);
+		filename[FILENAME_LEN-1] = 0;
+	}
+	FILE *fd = fopen(filename, "a");
+	fprintf(fd, "%02x%02x%02x%02x%02x%02x\n",
+		access_code[0],
+		access_code[1],
+		access_code[2],
+		access_code[3],
+		access_code[4],
+		access_code[5]);
+	fclose(fd);
+}
+
 /* Iterate through all possible access codes.
  * This could take a loooooooooong time. */
 int bruteforce(unsigned char* t, int deep) {
@@ -53,9 +71,13 @@ int bruteforce(unsigned char* t, int deep) {
 				if (yk_errno != 3) {
 					printf("Error accessing the key: %d\n",
 							yk_errno);
-					exit(1);
+					write_state(serialno, t);
+					exit(EXIT_FAILURE);
 				} else if (!(t[id] % 0x10)) {
 					print_access_code("Fail", t);
+				}
+				if (!(t[id] % 0xa0)) {
+					write_state(serialno, t);
 				}
 			} else {
 				print_access_code("\aWin", t);
