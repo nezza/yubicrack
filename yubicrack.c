@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
 	}
 
 	yk = 0;
-	unsigned char access_code[6];
+	unsigned char access_code[6]={0};
 	const char* aeshash="00000000000000000000000000000000";
 	YKP_CONFIG *cfg = ykp_create_config();
 	YK_STATUS *st = ykds_alloc();
